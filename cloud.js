@@ -1,9 +1,15 @@
-const {STATUS_COMPLETED} = require("./model/lucky");
 const {
   Cloud,
-  Object,
+  Object: AvObject,
   Query,
 } = require('leanengine');
+const STATUS_NORMAL = 0;
+const STATUS_CANCELED = 50;
+const STATUS_COMPLETED = 100;
+
+Cloud.define('hello', function(request) {
+  return 'Hello world!'
+})
 
 Cloud.define('drawWinner', async function(req) {
   const {
@@ -12,10 +18,16 @@ Cloud.define('drawWinner', async function(req) {
       luckyId,
     },
   } = req;
-  const model = 'danmu'
-  const roomId = currentUser.get('roomId');
-  const lucky = Object.createWithoutData(model, luckyId);
-  await lucky.fetch();
+  if (!currentUser) {
+    throw new Error('Not logged in.');
+  }
+  if (!luckyId) {
+    throw new Error('Lucky ID is needed.');
+  }
+
+  const model = 'lucky'
+  let lucky = AvObject.createWithoutData(model, luckyId);
+  lucky = await lucky.fetch();
   const {
     startTime,
     endTime,
@@ -23,8 +35,18 @@ Cloud.define('drawWinner', async function(req) {
     content,
     onlyOnce,
     number,
+    name,
+    roomId,
+    owner,
   } = lucky.toJSON();
-  const query = new Query(model);
+  if (!name) {
+    throw new Error('Lucky does not exist.');
+  }
+  if (owner.objectId !== currentUser.id) {
+    throw new Error('You dont have permission.');
+  }
+
+  const query = new Query('danmu');
   query.equalTo('room', roomId)
     .greaterThanOrEqualTo('ts', new Date(startTime).getTime() / 1000 >> 0)
     .lessThanOrEqualTo('ts', new Date(endTime).getTime() / 1000 >> 0)
@@ -43,11 +65,15 @@ Cloud.define('drawWinner', async function(req) {
     }, {}));
   }
   let winners = new Set();
-  while (winners.size < number) {
-    const index = danmu.length * Math.random() >> 0;
-    winners.add(index);
+  if (danmu.length <= number) {
+    winners = danmu;
+  } else {
+    while (winners.size < number) {
+      const index = danmu.length * Math.random() >> 0;
+      winners.add(index);
+    }
+    winners = [...winners].map(winner => danmu[winner]);
   }
-  winners = [...winners].map(winner => danmu[winner]);
   lucky.set('winners', winners);
   lucky.set('status', STATUS_COMPLETED);
   await lucky.save();
