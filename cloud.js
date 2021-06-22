@@ -51,10 +51,12 @@ Cloud.define('drawWinner', async function(req) {
     .greaterThanOrEqualTo('ts', new Date(startTime).getTime() / 1000 >> 0)
     .lessThanOrEqualTo('ts', new Date(endTime).getTime() / 1000 >> 0)
     .exists('uid');
-  if (strict) {
-    query.equalTo('content', content);
-  } else {
-    query.contains('content', content);
+  if (content) {
+    if (strict) {
+      query.equalTo('content', content);
+    } else {
+      query.contains('content', content);
+    }
   }
   let danmu = await query.find();
   if (onlyOnce) {
