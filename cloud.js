@@ -28,7 +28,7 @@ Cloud.define('drawWinner', async function(req) {
   const model = 'lucky'
   let lucky = AvObject.createWithoutData(model, luckyId);
   lucky = await lucky.fetch();
-  const {
+  let {
     startTime,
     endTime,
     strict,
@@ -38,12 +38,16 @@ Cloud.define('drawWinner', async function(req) {
     name,
     roomId,
     owner,
+    winners,
   } = lucky.toJSON();
   if (!name) {
     throw new Error('Lucky does not exist.');
   }
   if (owner.objectId !== currentUser.id) {
     throw new Error('You dont have permission.');
+  }
+  if (winners && winners.length) {
+    throw new Error('This lucky already has winners');
   }
 
   const query = new Query('danmu');
@@ -66,7 +70,7 @@ Cloud.define('drawWinner', async function(req) {
       return memo;
     }, {}));
   }
-  let winners = new Set();
+  winners = new Set();
   if (danmu.length <= number) {
     winners = danmu;
   } else {
