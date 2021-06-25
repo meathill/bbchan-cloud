@@ -7,9 +7,8 @@ const STATUS_NORMAL = 0;
 const STATUS_CANCELED = 50;
 const STATUS_COMPLETED = 100;
 
-Cloud.define('hello', function(request) {
-  return 'Hello world!'
-})
+const USER_NORMAL = 0;
+const USER_FORBIDDEN = 100;
 
 Cloud.define('drawWinner', async function(req) {
   const {
@@ -88,4 +87,14 @@ Cloud.define('drawWinner', async function(req) {
     status: 0,
     winners,
   };
+});
+
+Cloud.onLogin(request => {
+  if (request.object.get('status') === USER_FORBIDDEN) {
+    throw new Cloud.Error('您的账户状态异常，请联系开发者。');
+  }
+
+  request.object.set('lastLoginTime', new Date());
+  let ipAddress = request.meta.remoteAddress;
+  request.object.set('lastLoginIp', ipAddress);
 });
