@@ -98,3 +98,37 @@ Cloud.onLogin(request => {
   let ipAddress = request.meta.remoteAddress;
   request.object.set('lastLoginIp', ipAddress);
 });
+
+Cloud.define('setUser', async function (req) {
+  const {
+    currentUser,
+    params: {
+      userId,
+      status,
+    },
+  } = req;
+  if (!currentUser) {
+    throw new Cloud.Error('Not logged in.');
+  }
+  const roles = await currentUser.getRoles();
+  const role = roles.find(role => role.getName() === 'niceguy');
+  if (!role) {
+    throw new Cloud.Error('You are not administrator, you don\'t have permission');
+  }
+  if (!userId) {
+    throw new Cloud.Error('User ID is needed.');
+  }
+
+  const query = new Query('_User');
+  const user = await query.get(userId);
+  user.set('status', status);
+  try {
+    await user.save();
+    return {
+      status: 0,
+      data: 'ok',
+    };
+  } catch (e) {
+    throw new Cloud.Error(`操作用户 status => ${status} 失败。${e.message}`);
+  }
+});
