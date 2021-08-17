@@ -3,6 +3,7 @@ const {
   Object: AvObject,
   Query,
 } = require('leanengine');
+const {use} = require("express/lib/router");
 const STATUS_NORMAL = 0;
 const STATUS_CANCELED = 50;
 const STATUS_COMPLETED = 100;
@@ -105,6 +106,8 @@ Cloud.define('setUser', async function (req) {
     params: {
       userId,
       status,
+      rooms,
+      password,
     },
   } = req;
   if (!currentUser) {
@@ -121,7 +124,15 @@ Cloud.define('setUser', async function (req) {
 
   const query = new Query('_User');
   const user = await query.get(userId);
-  user.set('status', status);
+  if (status !== undefined) {
+    user.set('status', status);
+  }
+  if (rooms !== undefined) {
+    user.set('rooms', rooms.split(/\s*[,，]\s*/));
+  }
+  if (password !== undefined) {
+    user.setPassword(password);
+  }
   try {
     await user.save();
     return {

@@ -5,8 +5,7 @@
   "description": "A sample Node.js app using Express",
   "main": "server.js",
   "scripts": {
-    "start": "LEANCLOUD_APP_ID=F0wCNWUUMxcrBqeSvYnMzRoU-gzGzoHsz LEANCLOUD_APP_KEY=oMH7K3IbnN0igjEI99i8o57F node server.js",
-    "dev": "LEANCLOUD_APP_ID=F0wCNWUUMxcrBqeSvYnMzRoU-gzGzoHsz LEANCLOUD_APP_KEY=oMH7K3IbnN0igjEI99i8o57F nodemon server.js -- "
+    "dev": "nodemon server.js -- "
   },
   "dependencies": {
     "body-parser": "^1.18.3",
