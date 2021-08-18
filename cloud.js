@@ -100,6 +100,25 @@ Cloud.onLogin(request => {
   request.object.set('lastLoginIp', ipAddress);
 });
 
+Cloud.define('changePassword', async function (req) {
+  const {
+    currentUser,
+    params: {
+      password,
+      oldPassword,
+    },
+  } = req;
+  if (!currentUser) {
+    throw new Cloud.Error('Not logged in.');
+  }
+
+  await currentUser.updatePassword(oldPassword, password);
+  return {
+    status: 0,
+    data: 'ok',
+  };
+});
+
 Cloud.define('setUser', async function (req) {
   const {
     currentUser,
